@@ -1,4 +1,12 @@
-import type { ApiErrorBody, TokenResponse, User } from "@/types";
+import type {
+  ApiErrorBody,
+  Connection,
+  ConnectionCreateInput,
+  ConnectionTestResult,
+  SchemaCacheResponse,
+  TokenResponse,
+  User,
+} from "@/types";
 import { clearTokens, getAccessToken, getRefreshToken, storeTokens } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -76,4 +84,21 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshToken }),
     }),
+
+  listConnections: () => request<Connection[]>("/api/v1/connections"),
+
+  createConnection: (input: ConnectionCreateInput) =>
+    request<Connection>("/api/v1/connections", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  deleteConnection: (id: string) =>
+    request<void>(`/api/v1/connections/${id}`, { method: "DELETE" }),
+
+  testConnection: (id: string) =>
+    request<ConnectionTestResult>(`/api/v1/connections/${id}/test`, { method: "POST" }),
+
+  refreshConnectionSchema: (id: string) =>
+    request<SchemaCacheResponse>(`/api/v1/connections/${id}/schema`, { method: "POST" }),
 };

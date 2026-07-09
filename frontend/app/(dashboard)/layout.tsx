@@ -32,6 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <a href="/dashboard" className="block rounded px-2 py-1 hover:bg-gray-200">
             Dashboard
           </a>
+          <a href="/connections" className="block rounded px-2 py-1 hover:bg-gray-200">
+            Connections
+          </a>
         </nav>
       </aside>
       <div className="flex-1">

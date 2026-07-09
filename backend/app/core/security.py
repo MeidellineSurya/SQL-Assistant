@@ -3,9 +3,27 @@ from typing import Any, Literal
 from uuid import UUID
 
 import bcrypt
+from cryptography.fernet import Fernet, InvalidToken
 from jose import JWTError, jwt
 
 from app.core.config import settings
+
+_fernet = Fernet(settings.fernet_key.encode()) if settings.fernet_key else None
+
+
+def encrypt_secret(plaintext: str) -> str:
+    if _fernet is None:
+        raise RuntimeError("FERNET_KEY is not configured")
+    return _fernet.encrypt(plaintext.encode()).decode()
+
+
+def decrypt_secret(ciphertext: str) -> str:
+    if _fernet is None:
+        raise RuntimeError("FERNET_KEY is not configured")
+    try:
+        return _fernet.decrypt(ciphertext.encode()).decode()
+    except InvalidToken as exc:
+        raise ValueError("could not decrypt stored credential") from exc
 
 
 def hash_password(password: str) -> str:

@@ -3,6 +3,8 @@ import type {
   Connection,
   ConnectionCreateInput,
   ConnectionTestResult,
+  QueryHistoryItem,
+  QueryHistoryPage,
   SchemaCacheResponse,
   TokenResponse,
   User,
@@ -101,4 +103,16 @@ export const api = {
 
   refreshConnectionSchema: (id: string) =>
     request<SchemaCacheResponse>(`/api/v1/connections/${id}/schema`, { method: "POST" }),
+
+  generateSql: (connectionId: string, question: string) =>
+    request<QueryHistoryItem>("/api/v1/sql/generate", {
+      method: "POST",
+      body: JSON.stringify({ connection_id: connectionId, question }),
+    }),
+
+  listHistory: (cursor?: string) =>
+    request<QueryHistoryPage>(`/api/v1/history${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`),
+
+  deleteHistoryItem: (id: string) =>
+    request<void>(`/api/v1/history/${id}`, { method: "DELETE" }),
 };

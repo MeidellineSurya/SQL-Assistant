@@ -58,3 +58,21 @@ export interface SchemaCacheResponse {
   schema_cache: { tables: SchemaTable[] } | null;
   schema_cached_at: string | null;
 }
+
+export interface QueryHistoryItem {
+  id: string;
+  connection_id: string;
+  natural_language: string;
+  generated_sql: string;
+  is_valid: boolean | null;
+  was_executed: boolean;
+  row_count: number | null;
+  execution_ms: number | null;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface QueryHistoryPage {
+  items: QueryHistoryItem[];
+  next_cursor: string | null;
+}

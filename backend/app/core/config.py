@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     # Groq (Milestone 3)
     groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
 
     cors_origins: list[str] = ["http://localhost:3000"]
 

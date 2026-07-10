@@ -3,6 +3,7 @@ import type {
   Connection,
   ConnectionCreateInput,
   ConnectionTestResult,
+  ExecuteResponse,
   QueryHistoryItem,
   QueryHistoryPage,
   SchemaCacheResponse,
@@ -115,4 +116,10 @@ export const api = {
 
   deleteHistoryItem: (id: string) =>
     request<void>(`/api/v1/history/${id}`, { method: "DELETE" }),
+
+  executeSql: (historyId: string, sql: string) =>
+    request<ExecuteResponse>("/api/v1/sql/execute", {
+      method: "POST",
+      body: JSON.stringify({ history_id: historyId, sql }),
+    }),
 };

@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { SQLPreview } from "@/components/query/SQLPreview";
-import type { Connection, QueryHistoryItem } from "@/types";
+import { ResultsTable } from "@/components/query/ResultsTable";
+import type { Connection, ExecutionResult, QueryHistoryItem } from "@/types";
 
 export function QueryEditor() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectionId, setConnectionId] = useState("");
   const [question, setQuestion] = useState("");
-  const [result, setResult] = useState<QueryHistoryItem | null>(null);
+  const [history, setHistory] = useState<QueryHistoryItem | null>(null);
+  const [sql, setSql] = useState("");
+  const [result, setResult] = useState<ExecutionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [running, setRunning] = useState(false);
 
   useEffect(() => {
     api.listConnections().then((conns) => {
@@ -20,18 +23,39 @@ export function QueryEditor() {
     });
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setResult(null);
-    setLoading(true);
+    setGenerating(true);
     try {
       const item = await api.generateSql(connectionId, question);
-      setResult(item);
+      setHistory(item);
+      setSql(item.generated_sql);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
-      setLoading(false);
+      setGenerating(false);
+    }
+  }
+
+  async function handleRun() {
+    if (!history) return;
+    setError(null);
+    setResult(null);
+    setRunning(true);
+    try {
+      const { history: updated, result: execResult } = await api.executeSql(history.id, sql);
+      setHistory(updated);
+      if (execResult) {
+        setResult(execResult);
+      } else {
+        setError(updated.error_message ?? "Query could not be executed");
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong");
+    } finally {
+      setRunning(false);
     }
   }
 
@@ -45,14 +69,10 @@ export function QueryEditor() {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border p-4">
+      <form onSubmit={handleGenerate} className="space-y-3 rounded-lg border p-4">
         <label className="block space-y-1 text-sm">
           <span className="font-medium">Connection</span>
-          <select
-            value={connectionId}
-            onChange={(e) => setConnectionId(e.target.value)}
-            className="input"
-          >
+          <select value={connectionId} onChange={(e) => setConnectionId(e.target.value)} className="input">
             {connections.map((conn) => (
               <option key={conn.id} value={conn.id}>
                 {conn.name}
@@ -73,24 +93,46 @@ export function QueryEditor() {
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
         <button
           type="submit"
-          disabled={loading}
+          disabled={generating}
           className="rounded bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {loading ? "Generating..." : "Generate SQL"}
+          {generating ? "Generating..." : "Generate SQL"}
         </button>
       </form>
 
+      {history && (
+        <div className="space-y-2 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Generated SQL</h2>
+            <span className={`text-xs ${history.is_valid ? "text-green-600" : "text-red-600"}`}>
+              {history.is_valid ? "Valid" : "Invalid"}
+            </span>
+          </div>
+          <textarea
+            value={sql}
+            onChange={(e) => setSql(e.target.value)}
+            rows={4}
+            className="input font-mono"
+          />
+          <p className="text-xs text-gray-500">You can edit the SQL above before running it.</p>
+          <button
+            onClick={handleRun}
+            disabled={running}
+            className="rounded bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {running ? "Running..." : "Run query"}
+          </button>
+        </div>
+      )}
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       {result && (
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold">Generated SQL</h2>
-          <SQLPreview sql={result.generated_sql} />
-          <p className="text-xs text-gray-500">
-            Saved to history. Execution arrives in a later milestone — for now this is generate-only.
-          </p>
+          <h2 className="text-sm font-semibold">Results</h2>
+          <ResultsTable result={result} />
         </div>
       )}
     </div>

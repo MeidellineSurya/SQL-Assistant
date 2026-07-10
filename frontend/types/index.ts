@@ -76,3 +76,15 @@ export interface QueryHistoryPage {
   items: QueryHistoryItem[];
   next_cursor: string | null;
 }
+
+export interface ExecutionResult {
+  columns: string[];
+  rows: unknown[][];
+  row_count: number;
+  truncated: boolean;
+}
+
+export interface ExecuteResponse {
+  history: QueryHistoryItem;
+  result: ExecutionResult | null;
+}

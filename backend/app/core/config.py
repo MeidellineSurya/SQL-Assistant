@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
 
+    # Query execution (Milestone 4)
+    sql_max_rows: int = 500
+    sql_statement_timeout_ms: int = 5000
+
     cors_origins: list[str] = ["http://localhost:3000"]
 
 

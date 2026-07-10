@@ -11,3 +11,4 @@ bcrypt==4.2.0
 cryptography==43.0.1
 python-multipart==0.0.12
 groq==1.5.0
+sqlglot==30.12.0

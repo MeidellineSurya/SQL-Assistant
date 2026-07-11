@@ -12,12 +12,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* This app's pages (login, dashboard, etc.) are built with explicit light
+   backgrounds (bg-white / bg-gray-50) and no dark: variants, so following
+   the OS dark-mode preference here would flip body text light-on-white and
+   make it unreadable. Pin to the light theme until the UI actually supports
+   dark mode throughout. */
 
 body {
   background: var(--background);

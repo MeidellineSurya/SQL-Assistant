@@ -116,10 +116,24 @@ def _run_against_target(conn, sql: str) -> ExecutionResult:
 def execute_sql(
     db: DBSession, user_id: uuid.UUID, history_id: uuid.UUID, sql: str
 ) -> tuple[QueryHistory, ExecutionResult | None]:
-    history = history_service.get_history_item(db, user_id, history_id)
+    original = history_service.get_history_item(db, user_id, history_id)
+
+    if sql.strip() != original.generated_sql.strip():
+        # The SQL was edited before running. Keep the original generated_sql
+        # record intact — it's what the AI actually produced for that
+        # question — and log this edited attempt as its own history entry
+        # instead of silently overwriting the original.
+        history = QueryHistory(
+            user_id=user_id,
+            connection_id=original.connection_id,
+            natural_language=original.natural_language,
+            generated_sql=sql,
+        )
+        db.add(history)
+    else:
+        history = original
 
     is_valid, validation_error = validate_sql(sql)
-    history.generated_sql = sql
     history.is_valid = is_valid
 
     if not is_valid:

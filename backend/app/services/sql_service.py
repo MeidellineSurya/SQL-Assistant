@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from typing import Any
 
 import sqlglot
-from sqlglot import exp
 from sqlalchemy import text
 from sqlalchemy.orm import Session as DBSession
+from sqlglot import exp
 
 from app.core.config import settings
 from app.models.query import QueryHistory

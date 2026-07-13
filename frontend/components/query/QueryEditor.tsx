@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ResultsTable } from "@/components/query/ResultsTable";
+import { ChartPanel } from "@/components/charts/ChartPanel";
 import type { Connection, ExecutionResult, QueryHistoryItem } from "@/types";
 
 export function QueryEditor() {
@@ -135,6 +136,8 @@ export function QueryEditor() {
           <ResultsTable result={result} />
         </div>
       )}
+
+      {result && history && <ChartPanel key={history.id} queryId={history.id} result={result} />}
     </div>
   );
 }

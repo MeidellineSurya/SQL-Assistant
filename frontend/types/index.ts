@@ -88,3 +88,23 @@ export interface ExecuteResponse {
   history: QueryHistoryItem;
   result: ExecutionResult | null;
 }
+
+export type ChartType = "bar" | "line" | "pie" | "scatter" | "table";
+
+export interface SuggestChartResponse {
+  chart_type: ChartType;
+  reasoning: string;
+}
+
+export interface ChartConfig {
+  x_key: string;
+  y_keys: string[];
+}
+
+export interface Chart {
+  id: string;
+  query_id: string;
+  chart_type: ChartType;
+  config_json: ChartConfig;
+  created_at: string;
+}

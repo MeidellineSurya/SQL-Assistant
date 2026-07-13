@@ -1,5 +1,6 @@
 import type {
   ApiErrorBody,
+  Chart,
   Connection,
   ConnectionCreateInput,
   ConnectionTestResult,
@@ -7,6 +8,7 @@ import type {
   QueryHistoryItem,
   QueryHistoryPage,
   SchemaCacheResponse,
+  SuggestChartResponse,
   TokenResponse,
   User,
 } from "@/types";
@@ -121,5 +123,17 @@ export const api = {
     request<ExecuteResponse>("/api/v1/sql/execute", {
       method: "POST",
       body: JSON.stringify({ history_id: historyId, sql }),
+    }),
+
+  suggestChart: (queryId: string, columns: string[], sampleRows: unknown[][]) =>
+    request<SuggestChartResponse>("/api/v1/charts/suggest", {
+      method: "POST",
+      body: JSON.stringify({ query_id: queryId, columns, sample_rows: sampleRows }),
+    }),
+
+  generateChart: (queryId: string, chartType: string, columns: string[]) =>
+    request<Chart>("/api/v1/charts/generate", {
+      method: "POST",
+      body: JSON.stringify({ query_id: queryId, chart_type: chartType, columns }),
     }),
 };

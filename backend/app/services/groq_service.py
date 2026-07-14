@@ -1,4 +1,5 @@
 import json
+from collections.abc import Iterator
 from typing import Any
 
 from groq import Groq
@@ -41,6 +42,12 @@ Rules:
 - For "pie" charts, y_keys must contain exactly one column (the value to slice by); x_key is the label column.
 - Respond with strict JSON matching this shape, and nothing else: \
 {"x_key": "<column name>", "y_keys": ["<column name>", ...]}
+"""
+
+_EXPLAIN_SYSTEM_PROMPT = """You are a friendly SQL tutor. Given a user's original question and the SQL query \
+that answers it, explain in plain English what the query does and how it works. Be concise (2-4 sentences), \
+educational, and explain the *logic* (what's being joined, filtered, grouped, or aggregated, and why) rather \
+than restating the SQL syntax verbatim.
 """
 
 
@@ -100,3 +107,26 @@ def generate_chart_config(chart_type: str, columns: list[str]) -> dict[str, Any]
     if "x_key" not in parsed or "y_keys" not in parsed:
         raise GroqServiceError(f"malformed response from Groq: {parsed}")
     return parsed
+
+
+def stream_explanation(question: str, sql: str) -> Iterator[str]:
+    if _client is None:
+        raise GroqServiceError("GROQ_API_KEY is not configured")
+
+    user_content = f"Question: {question}\n\nSQL:\n{sql}"
+    try:
+        stream = _client.chat.completions.create(
+            model=settings.groq_model,
+            messages=[
+                {"role": "system", "content": _EXPLAIN_SYSTEM_PROMPT},
+                {"role": "user", "content": user_content},
+            ],
+            stream=True,
+            temperature=0,
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
+    except Exception as exc:  # noqa: BLE001 - any Groq/streaming failure becomes a service error
+        raise GroqServiceError(f"Groq streaming request failed: {exc}") from exc

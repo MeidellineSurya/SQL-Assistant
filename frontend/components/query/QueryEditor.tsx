@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { ResultsTable } from "@/components/query/ResultsTable";
+import { ExplanationPanel } from "@/components/query/ExplanationPanel";
 import { ChartPanel } from "@/components/charts/ChartPanel";
 import type { Connection, ExecutionResult, QueryHistoryItem } from "@/types";
 
@@ -118,13 +119,16 @@ export function QueryEditor() {
             className="input font-mono"
           />
           <p className="text-xs text-gray-500">You can edit the SQL above before running it.</p>
-          <button
-            onClick={handleRun}
-            disabled={running}
-            className="rounded bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {running ? "Running..." : "Run query"}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleRun}
+              disabled={running}
+              className="rounded bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {running ? "Running..." : "Run query"}
+            </button>
+          </div>
+          <ExplanationPanel key={history.id} historyId={history.id} />
         </div>
       )}
 

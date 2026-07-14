@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     sql_max_rows: int = 500
     sql_statement_timeout_ms: int = 5000
 
+    # AI-endpoint rate limiting (Milestone 7)
+    rate_limit_max_requests: int = 10
+    rate_limit_window_seconds: int = 60
+
     cors_origins: list[str] = ["http://localhost:3000"]
 
 

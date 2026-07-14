@@ -56,3 +56,7 @@ class QueryHistoryPage(BaseModel):
 class ExecuteResponse(BaseModel):
     history: QueryHistoryResponse
     result: ExecutionResultResponse | None
+
+
+class ExplainRequest(BaseModel):
+    history_id: uuid.UUID

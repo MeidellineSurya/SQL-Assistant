@@ -136,4 +136,47 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ query_id: queryId, chart_type: chartType, columns }),
     }),
+
+  // Not using EventSource here: it can't send an Authorization header, and
+  // this API is header-based JWT auth throughout (see lib/auth.ts). fetch()
+  // + manual stream reading is the standard workaround for authenticated SSE.
+  streamExplanation: async function* (historyId: string): AsyncGenerator<string> {
+    const accessToken = getAccessToken();
+    const res = await fetch(`${API_BASE}/api/v1/sql/explain`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify({ history_id: historyId }),
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({ detail: res.statusText }))) as ApiErrorBody;
+      throw new ApiError(res.status, body.detail);
+    }
+    if (!res.body) throw new Error("no response body");
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return;
+
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop() ?? "";
+
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith("data:")) continue;
+        const payload = JSON.parse(line.slice(5).trim());
+        if (payload.error) throw new Error(payload.error);
+        if (payload.done) return;
+        if (payload.delta) yield payload.delta;
+      }
+    }
+  },
 };

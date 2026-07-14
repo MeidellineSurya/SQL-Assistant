@@ -29,6 +29,11 @@ function toChartData(result: ExecutionResult, config: ChartConfig): Record<strin
       const value = record[key];
       if (typeof value === "string") record[key] = Number(value);
     });
+    // Recharts' categorical axis needs a stable string/number tick identity.
+    // A raw boolean (e.g. from `GROUP BY is_valid`) or null breaks its
+    // internal band-scale domain and silently renders no ticks or bars at
+    // all, rather than an obvious error.
+    record[config.x_key] = String(record[config.x_key]);
     return record;
   });
 }

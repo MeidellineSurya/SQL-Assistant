@@ -84,6 +84,12 @@ export const api = {
 
   me: () => request<User>("/api/v1/auth/me"),
 
+  changePassword: (newPassword: string) =>
+    request<void>("/api/v1/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ new_password: newPassword }),
+    }),
+
   logout: (refreshToken: string) =>
     request<void>("/api/v1/auth/logout", {
       method: "POST",

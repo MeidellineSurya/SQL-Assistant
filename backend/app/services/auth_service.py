@@ -79,3 +79,16 @@ def revoke_refresh_token(db: DBSession, refresh_token: str) -> None:
     if session:
         db.delete(session)
         db.commit()
+
+
+def change_password(db: DBSession, user: User, new_password: str) -> None:
+    user.password_hash = hash_password(new_password)
+
+    # The caller is already authenticated via a valid access token, so this
+    # doesn't require the old password. But once the password changes, every
+    # other refresh token was issued under the old credential and should stop
+    # working — otherwise a stolen refresh token would survive a password
+    # change meant to lock it out. This includes the session that produced
+    # the current access token, forcing a fresh login everywhere.
+    db.query(SessionModel).filter(SessionModel.user_id == user.id).delete()
+    db.commit()
